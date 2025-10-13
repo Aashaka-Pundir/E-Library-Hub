@@ -18,7 +18,7 @@ def write_story():
     print(f"Story saved as '{filename}'")
 
 def list_stories():
-    print("\n📚 Available Stories:")
+    print("\n Available Stories:")
     for file in os.listdir():
         if file.endswith(".txt"):
             print(f"- {file}")
@@ -86,3 +86,4 @@ while True:
         break
     else:
         print("Invalid choice. Try again.")
+
