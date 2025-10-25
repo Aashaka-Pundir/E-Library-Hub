@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: Arial, sans-serif; }
+        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 300px; }
+        h2 { margin: 0 0 30px; text-align: center; color: #333; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #5568d3; }
+        .toggle-text { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
+        .toggle-text a { color: #667eea; cursor: pointer; text-decoration: none; }
+        .toggle-text a:hover { text-decoration: underline; }
+        .hidden { display: none; }
+        .story-page { padding: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; color: white; }
+        .logout-btn { padding: 8px 16px; background: white; color: #667eea; border: none; border-radius: 5px; cursor: pointer; }
+        .upload-section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .upload-section textarea { width: 100%; min-height: 150px; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; margin-bottom: 10px; font-family: Arial, sans-serif; }
+        .story-list { display: grid; gap: 15px; }
+        .story-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .story-card h3 { margin: 0 0 10px; color: #667eea; }
+        .story-card .author { font-size: 12px; color: #999; margin-bottom: 10px; }
+        .story-card .content { color: #333; line-height: 1.6; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="login-box" id="loginBox">
+        <h2>Login</h2>
+        <input type="text" placeholder="Username" id="loginUsername">
+        <input type="password" placeholder="Password" id="loginPassword">
+        <button onclick="handleLogin()">Sign In</button>
+        <div class="toggle-text">Don't have an account? <a onclick="showSignup()">Create Account</a></div>
+    </div>
+    
+    <div class="login-box hidden" id="signupBox">
+        <h2>Create Account</h2>
+        <input type="text" placeholder="Username" id="signupUsername">
+        <input type="password" placeholder="Password" id="signupPassword">
+        <input type="password" placeholder="Confirm Password" id="signupConfirmPassword">
+        <button onclick="handleSignup()">Create Account</button>
+        <div class="toggle-text">Already have an account? <a onclick="showLogin()">Sign In</a></div>
+    </div>
+    
+    <div class="story-page hidden" id="storyPage">
+        <div class="header">
+            <h1>Story Hub</h1>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+        
+        <div class="upload-section">
+            <h2>Write Your Story</h2>
+            <input type="text" placeholder="Story Title" id="storyTitle">
+            <textarea placeholder="Write your story here..." id="storyContent"></textarea>
+            <button onclick="uploadStory()">Upload Story</button>
+        </div>
+        
+        <div class="story-list" id="storyList">
+            <h2 style="color: white;">All Stories</h2>
+        </div>
+    </div>
+    
+    <script>
+        let accounts = {};
+        let stories = [];
+        let currentUser = null;
+        
+        function showSignup() {
+            document.getElementById('loginBox').classList.add('hidden');
+            document.getElementById('signupBox').classList.remove('hidden');
+        }
+        
+        function showLogin() {
+            document.getElementById('signupBox').classList.add('hidden');
+            document.getElementById('loginBox').classList.remove('hidden');
+        }
+        
+        function handleSignup() {
+            const username = document.getElementById('signupUsername').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            
+            if (!username || !password || !confirmPassword) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+            
+            if (accounts[username]) {
+                alert('Username already exists');
+                return;
+            }
+            
+            accounts[username] = { password };
+            alert('Account created successfully! Please login.');
+            showLogin();
+            document.getElementById('signupUsername').value = '';
+            document.getElementById('signupPassword').value = '';
+            document.getElementById('signupConfirmPassword').value = '';
+        }
+        
+        function handleLogin() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            if (!accounts[username]) {
+                alert('Account not found. Please create an account first.');
+                return;
+            }
+            
+            if (accounts[username].password !== password) {
+                alert('Incorrect password');
+                return;
+            }
+            
+            currentUser = username;
+            showStoryPage();
+        }
+        
+        function showStoryPage() {
+            document.getElementById('loginBox').classList.add('hidden');
+            document.getElementById('signupBox').classList.add('hidden');
+            document.getElementById('storyPage').classList.remove('hidden');
+            displayStories();
+        }
+        
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('storyPage').classList.add('hidden');
+            document.getElementById('loginBox').classList.remove('hidden');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+        
+        function uploadStory() {
+            const title = document.getElementById('storyTitle').value;
+            const content = document.getElementById('storyContent').value;
+            
+            if (!title || !content) {
+                alert('Please provide both title and content');
+                return;
+            }
+            
+            stories.push({
+                title: title,
+                content: content,
+                author: currentUser,
+                date: new Date().toLocaleDateString()
+            });
+            
+            alert('Story uploaded successfully!');
+            document.getElementById('storyTitle').value = '';
+            document.getElementById('storyContent').value = '';
+            displayStories();
+        }
+        
+        function displayStories() {
+            const storyList = document.getElementById('storyList');
+            const storiesHTML = stories.map(story => `
+                <div class="story-card">
+                    <h3>${story.title}</h3>
+                    <div class="author">By ${story.author} • ${story.date}</div>
+                    <div class="content">${story.content}</div>
+                </div>
+            `).join('');
+            
+            storyList.innerHTML = '<h2 style="color: white;">All Stories</h2>' + (storiesHTML || '<p style="color: white;">No stories yet. Be the first to share!</p>');
+        }
+    </script>
+</body>
+</html>
