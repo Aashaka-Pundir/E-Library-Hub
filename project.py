@@ -1,65 +1,57 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Story, Category
-from .forms import StoryForm, UserRegisterForm
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate, logout
-from django.contrib import messages
-from django.db.models import Q
+import os
 
-def home(request):
-    stories = Story.objects.filter(published=True).order_by('-created_at')
-    categories = Category.objects.all()
-    query = request.GET.get('q')
-    if query:
-        stories = stories.filter(
-            Q(title_icontains=query) | Q(contenticontains=query) | Q(categoryname_icontains=query)
-        ).distinct()
-    return render(request, 'stories/home.html', {'stories': stories, 'categories': categories})
+CATALOG_FILE = "story_catalog.txt"
 
-def story_detail(request, pk):
-    story = get_object_or_404(Story, pk=pk, published=True)
-    return render(request, 'stories/story_detail.html', {'story': story})
+def add_story():
+    title = input("Enter story title: ")
+    author = input("Enter author name: ")
+    genre = input("Enter genre: ")
+    with open(CATALOG_FILE, "a") as file:
+        file.write(f"{title},{author},{genre}\n")
+    print(" Story added to catalog.")
 
-@login_required
-def create_story(request):
-    if request.method == 'POST':
-        form = StoryForm(request.POST)
-        if form.is_valid():
-            story = form.save(commit=False)
-            story.author = request.user
-            story.save()
-            messages.success(request, 'Story created successfully!')
-            return redirect('story_detail', pk=story.pk)
+def view_catalog():
+    if not os.path.exists(CATALOG_FILE):
+        print(" No stories found.")
+        return
+    print("\n Story Catalog:")
+    with open(CATALOG_FILE, "r") as file:
+        for line in file:
+            title, author, genre = line.strip().split(",")
+            print(f"- {title} by {author} [{genre}]")
+
+def search_story():
+    keyword = input("Enter title or author to search: ").lower()
+    found = False
+    with open(CATALOG_FILE, "r") as file:
+        for line in file:
+            title, author, genre = line.strip().split(",")
+            if keyword in title.lower() or keyword in author.lower():
+                print(f" Found: {title} by {author} [{genre}]")
+                found = True
+    if not found:
+        print(" Story not found.")
+
+
+while True:
+    print("\n Story Catalog Menu")
+    print("1. Add Story")
+    print("2. View Catalog")
+    print("3. Search Story")
+    print("4. Exit")
+
+    choice = input("Choose an option (1–4): ")
+
+    if choice == "1":
+        add_story()
+    elif choice == "2":
+        view_catalog()
+    elif choice == "3":
+        search_story()
+    elif choice == "4":
+        print("Exiting...!")
+        break
     else:
-        form = StoryForm()
-    return render(request, 'stories/create_story.html', {'form': form})
+        print(" Invalid choice.")
 
-def register(request):
-    if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('home')
-    else:
-        form = UserRegisterForm()
-    return render(request, 'stories/register.html', {'form': form})
-
-def user_login(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user:
-            login(request, user)
-            return redirect('home')
-        else:
-            messages.error(request, 'Invalid username or password.')
-    return render(request, 'stories/login.html')
-
-@login_required
-def user_logout(request):
-    logout(request)
-    return redirect('home')
  
