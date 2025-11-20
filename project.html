@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Story Hub</title>
     <style>
         body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-family: Arial, sans-serif; }
         .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 300px; }
@@ -15,13 +15,40 @@
         .toggle-text a { color: #667eea; cursor: pointer; text-decoration: none; }
         .toggle-text a:hover { text-decoration: underline; }
         .hidden { display: none; }
-        .story-page { padding: 20px; }
+        .story-page { padding: 20px; width: 100%; max-width: 1100px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         .header h1 { margin: 0; color: white; }
         .logout-btn { padding: 8px 16px; background: white; color: #667eea; border: none; border-radius: 5px; cursor: pointer; }
+        .main-layout { gap: 20px; align-items: flex-start; }
         .upload-section { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
         .upload-section textarea { width: 100%; min-height: 150px; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; margin-bottom: 10px; font-family: Arial, sans-serif; }
-        .story-list { display: grid; gap: 15px; }
+        /* TABS */
+        .tab-btn { padding: 10px 24px; border-radius:7px; border:none; font-weight:bold; cursor:pointer; font-size:15px; }
+        .active-tab { background:#667eea; color:white;}
+        .inactive-tab { background:white; color:#667eea;}
+        /* DASHBOARD */
+        .dashboard { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .dash-card { background: #f7f7ff; border-radius: 8px; padding: 12px 14px; }
+        .dash-label { font-size: 12px; color: #666; margin-bottom: 6px; }
+        .dash-value { font-size: 20px; font-weight: bold; color: #667eea; }
+        .dash-sub { font-size: 11px; color: #999; margin-top: 4px; }
+        /* CATALOG */
+        .catalog { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .catalog h2 { margin: 0 0 15px; text-align: left; }
+        .catalog-controls { display: flex; gap: 10px; margin-bottom: 15px; }
+        .catalog-controls input,
+        .catalog-controls select { flex: 1; padding: 8px 10px; border-radius: 5px; border: 1px solid #ddd; font-size: 14px; }
+        .catalog-list { max-height: 350px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
+        .catalog-item { padding: 10px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+        .catalog-item:last-child { border-bottom: none; }
+        .catalog-title { font-size: 15px; font-weight: bold; color: #333; }
+        .catalog-meta { font-size: 11px; color: #888; margin-top: 3px; }
+        .catalog-snippet { font-size: 13px; color: #555; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* STORY LIST */
+        .story-list { margin-top: 20px; }
+        .story-list h2 { color: white; }
+        .story-cards { display: grid; gap: 15px; }
         .story-card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .story-card h3 { margin: 0 0 10px; color: #667eea; }
         .story-card .author { font-size: 12px; color: #999; margin-bottom: 10px; }
@@ -29,6 +56,7 @@
     </style>
 </head>
 <body>
+    <!-- LOGIN -->
     <div class="login-box" id="loginBox">
         <h2>Login</h2>
         <input type="text" placeholder="Username" id="loginUsername">
@@ -36,7 +64,7 @@
         <button onclick="handleLogin()">Sign In</button>
         <div class="toggle-text">Don't have an account? <a onclick="showSignup()">Create Account</a></div>
     </div>
-    
+    <!-- SIGNUP -->
     <div class="login-box hidden" id="signupBox">
         <h2>Create Account</h2>
         <input type="text" placeholder="Username" id="signupUsername">
@@ -45,60 +73,97 @@
         <button onclick="handleSignup()">Create Account</button>
         <div class="toggle-text">Already have an account? <a onclick="showLogin()">Sign In</a></div>
     </div>
-    
+    <!-- STORY PAGE + DASHBOARD + CATALOG -->
     <div class="story-page hidden" id="storyPage">
         <div class="header">
             <h1>Story Hub</h1>
             <button class="logout-btn" onclick="handleLogout()">Logout</button>
         </div>
-        
-        <div class="upload-section">
-            <h2>Write Your Story</h2>
-            <input type="text" placeholder="Story Title" id="storyTitle">
-            <textarea placeholder="Write your story here..." id="storyContent"></textarea>
-            <button onclick="uploadStory()">Upload Story</button>
+        <!-- Tab Buttons -->
+        <div style="display: flex; gap: 10px; margin-bottom: 18px;">
+            <button id="dashboardTab" class="tab-btn active-tab" onclick="switchPanel('dashboard')">Dashboard</button>
+            <button id="catalogTab" class="tab-btn inactive-tab" onclick="switchPanel('catalog')">Catalog</button>
         </div>
-        
+        <div class="main-layout">
+            <!-- DASHBOARD PANEL -->
+            <div id="dashboardPanel">
+                <div class="upload-section">
+                    <h2>Write Your Story</h2>
+                    <input type="text" placeholder="Story Title" id="storyTitle">
+                    <textarea placeholder="Write your story here..." id="storyContent"></textarea>
+                    <button onclick="uploadStory()">Upload Story</button>
+                </div>
+                <div class="dashboard" id="dashboard">
+                    <h2 style="margin-bottom: 15px; text-align:left;">Dashboard</h2>
+                    <div class="dashboard-grid">
+                        <div class="dash-card">
+                            <div class="dash-label">Total Stories</div>
+                            <div class="dash-value" id="totalStoriesValue">0</div>
+                            <div class="dash-sub">All users</div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="dash-label">Your Stories</div>
+                            <div class="dash-value" id="userStoriesValue">0</div>
+                            <div class="dash-sub" id="userLastDate">No stories yet</div>
+                        </div>
+                        <div class="dash-card">
+                            <div class="dash-label">Latest Story</div>
+                            <div class="dash-value" id="latestStoryTitle">-</div>
+                            <div class="dash-sub" id="latestStoryMeta">–</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- CATALOG PANEL (Initially Hidden) -->
+            <div id="catalogPanel" style="display:none;">
+                <div class="catalog">
+                    <h2>Story Catalog</h2>
+                    <div class="catalog-controls">
+                        <input type="text" id="catalogSearch" placeholder="Search by title or content" oninput="updateCatalog()">
+                        <select id="catalogAuthorFilter" onchange="updateCatalog()">
+                            <option value="all">All authors</option>
+                        </select>
+                    </div>
+                    <div class="catalog-list" id="catalogList">
+                        <!-- catalog items injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- FULL STORY LIST -->
         <div class="story-list" id="storyList">
-            <h2 style="color: white;">All Stories</h2>
+            <h2>All Stories</h2>
+            <div class="story-cards" id="storyCards"></div>
         </div>
     </div>
-    
     <script>
         let accounts = {};
         let stories = [];
         let currentUser = null;
-        
         function showSignup() {
             document.getElementById('loginBox').classList.add('hidden');
             document.getElementById('signupBox').classList.remove('hidden');
         }
-        
         function showLogin() {
             document.getElementById('signupBox').classList.add('hidden');
             document.getElementById('loginBox').classList.remove('hidden');
         }
-        
         function handleSignup() {
             const username = document.getElementById('signupUsername').value;
             const password = document.getElementById('signupPassword').value;
             const confirmPassword = document.getElementById('signupConfirmPassword').value;
-            
             if (!username || !password || !confirmPassword) {
                 alert('Please fill in all fields');
                 return;
             }
-            
             if (password !== confirmPassword) {
                 alert('Passwords do not match');
                 return;
             }
-            
             if (accounts[username]) {
                 alert('Username already exists');
                 return;
             }
-            
             accounts[username] = { password };
             alert('Account created successfully! Please login.');
             showLogin();
@@ -106,37 +171,34 @@
             document.getElementById('signupPassword').value = '';
             document.getElementById('signupConfirmPassword').value = '';
         }
-        
         function handleLogin() {
             const username = document.getElementById('loginUsername').value;
             const password = document.getElementById('loginPassword').value;
-            
             if (!username || !password) {
                 alert('Please fill in all fields');
                 return;
             }
-            
             if (!accounts[username]) {
                 alert('Account not found. Please create an account first.');
                 return;
             }
-            
             if (accounts[username].password !== password) {
                 alert('Incorrect password');
                 return;
             }
-            
             currentUser = username;
             showStoryPage();
         }
-        
         function showStoryPage() {
             document.getElementById('loginBox').classList.add('hidden');
             document.getElementById('signupBox').classList.add('hidden');
             document.getElementById('storyPage').classList.remove('hidden');
+            switchPanel('dashboard');  // Show dashboard first
             displayStories();
+            updateDashboard();
+            populateAuthorFilter();
+            updateCatalog();
         }
-        
         function handleLogout() {
             currentUser = null;
             document.getElementById('storyPage').classList.add('hidden');
@@ -144,40 +206,132 @@
             document.getElementById('loginUsername').value = '';
             document.getElementById('loginPassword').value = '';
         }
-        
         function uploadStory() {
             const title = document.getElementById('storyTitle').value;
             const content = document.getElementById('storyContent').value;
-            
             if (!title || !content) {
                 alert('Please provide both title and content');
                 return;
             }
-            
             stories.push({
+                id: Date.now(),
                 title: title,
                 content: content,
                 author: currentUser,
                 date: new Date().toLocaleDateString()
             });
-            
             alert('Story uploaded successfully!');
             document.getElementById('storyTitle').value = '';
             document.getElementById('storyContent').value = '';
             displayStories();
+            updateDashboard();
+            populateAuthorFilter();
+            updateCatalog();
         }
-        
         function displayStories() {
-            const storyList = document.getElementById('storyList');
-            const storiesHTML = stories.map(story => `
+            const storyCards = document.getElementById('storyCards');
+            if (stories.length === 0) {
+                storyCards.innerHTML = '<p style="color: white;">No stories yet. Be the first to share!</p>';
+                return;
+            }
+            storyCards.innerHTML = stories.map(story => `
                 <div class="story-card">
                     <h3>${story.title}</h3>
                     <div class="author">By ${story.author} • ${story.date}</div>
                     <div class="content">${story.content}</div>
                 </div>
             `).join('');
-            
-            storyList.innerHTML = '<h2 style="color: white;">All Stories</h2>' + (storiesHTML || '<p style="color: white;">No stories yet. Be the first to share!</p>');
+        }
+        /* DASHBOARD LOGIC */
+        function updateDashboard() {
+            const totalStories = stories.length;
+            const userStories = stories.filter(s => s.author === currentUser);
+            const latestStory = stories[stories.length - 1];
+            document.getElementById('totalStoriesValue').textContent = totalStories;
+            document.getElementById('userStoriesValue').textContent = userStories.length;
+            if (userStories.length > 0) {
+                const lastUserStory = userStories[userStories.length - 1];
+                document.getElementById('userLastDate').textContent = 'Last on ' + lastUserStory.date;
+            } else {
+                document.getElementById('userLastDate').textContent = 'No stories yet';
+            }
+            if (latestStory) {
+                document.getElementById('latestStoryTitle').textContent = latestStory.title.length > 8
+                    ? latestStory.title.slice(0, 8) + '…'
+                    : latestStory.title;
+                document.getElementById('latestStoryMeta').textContent = `By ${latestStory.author} • ${latestStory.date}`;
+            } else {
+                document.getElementById('latestStoryTitle').textContent = '-';
+                document.getElementById('latestStoryMeta').textContent = '–';
+            }
+        }
+        /* CATALOG LOGIC */
+        function populateAuthorFilter() {
+            const select = document.getElementById('catalogAuthorFilter');
+            const currentValue = select.value || 'all';
+            const authors = Array.from(new Set(stories.map(s => s.author)));
+            select.innerHTML = '<option value="all">All authors</option>' +
+                authors.map(a => `<option value="${a}">${a}</option>`).join('');
+            if ([...select.options].some(o => o.value === currentValue)) {
+                select.value = currentValue;
+            }
+        }
+        function updateCatalog() {
+            const searchValue = document.getElementById('catalogSearch').value.toLowerCase();
+            const authorValue = document.getElementById('catalogAuthorFilter').value;
+            const list = document.getElementById('catalogList');
+            let filtered = stories;
+            if (authorValue !== 'all') {
+                filtered = filtered.filter(s => s.author === authorValue);
+            }
+            if (searchValue) {
+                filtered = filtered.filter(s =>
+                    s.title.toLowerCase().includes(searchValue) ||
+                    s.content.toLowerCase().includes(searchValue)
+                );
+            }
+            if (filtered.length === 0) {
+                list.innerHTML = '<p style="font-size:13px; color:#777;">No stories match your filters.</p>';
+                return;
+            }
+            list.innerHTML = filtered.map(story => `
+                <div class="catalog-item" onclick="scrollToStory(${story.id})">
+                    <div class="catalog-title">${story.title}</div>
+                    <div class="catalog-meta">By ${story.author} • ${story.date}</div>
+                    <div class="catalog-snippet">${story.content.replace(/\n/g, ' ').slice(0, 80)}${story.content.length > 80 ? '…' : ''}</div>
+                </div>
+            `).join('');
+        }
+        // Simple scroll: matches by title in main list
+        function scrollToStory(id) {
+            const target = Array.from(document.querySelectorAll('.story-card'))
+                .find(card => card.querySelector('h3').textContent ===
+                    stories.find(s => s.id === id).title);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+        // PANEL SWITCHING LOGIC
+        function switchPanel(panel) {
+            const dashboardPanel = document.getElementById('dashboardPanel');
+            const catalogPanel = document.getElementById('catalogPanel');
+            const dashboardTab = document.getElementById('dashboardTab');
+            const catalogTab = document.getElementById('catalogTab');
+            if (panel === 'dashboard') {
+                dashboardPanel.style.display = '';
+                catalogPanel.style.display = 'none';
+                dashboardTab.classList.add('active-tab');
+                dashboardTab.classList.remove('inactive-tab');
+                catalogTab.classList.add('inactive-tab');
+                catalogTab.classList.remove('active-tab');
+            } else {
+                dashboardPanel.style.display = 'none';
+                catalogPanel.style.display = '';
+                dashboardTab.classList.add('inactive-tab');
+                dashboardTab.classList.remove('active-tab');
+                catalogTab.classList.add('active-tab');
+                catalogTab.classList.remove('inactive-tab');
+            }
         }
     </script>
 </body>
